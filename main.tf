@@ -78,7 +78,7 @@ variable "gp_etl_ipv4_netmask" {
 }
 
 # Static ip addresses for mdw, sd21, and sdw2
-# If you change the ip adresses below, please change the hosts, hosts-segments, and hosts-all files in the base vm 
+# If you change the ip adresses below, please change the hosts, and check the hosts-segments, and hosts-all files in the base vm 
 # mdw
 variable "gp_mdw_external_ip" {
   type = string
