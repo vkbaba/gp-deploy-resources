@@ -118,6 +118,7 @@ variable "gp_sdw2_etl_ip" {
 }
 
 
+
 ######################
 # terraform scripts
 # PLEASE DO NOT CHANGE
@@ -174,9 +175,9 @@ data "vsphere_virtual_machine" "template" {
 
 locals {
   # gp_virtual_internal_ip_cidr = "${data.vsphere_virtual_machine.template.vapp[0].properties["guestinfo.internal_ip_cidr"]}"
-  deployment_type = contains(keys(data.vsphere_virtual_machine.template.vapp[0].properties), "guestinfo.deployment_type") ? "${data.vsphere_virtual_machine.template.vapp[0].properties["guestinfo.deployment_type"]}" : "mirrored"
-  primary_segment_count = "${data.vsphere_virtual_machine.template.vapp[0].properties["guestinfo.primary_segment_count"]}"
-  segment_count = local.deployment_type == "mirrored" ? local.primary_segment_count * 2: local.primary_segment_count
+  # deployment_type = contains(keys(data.vsphere_virtual_machine.template.vapp[0].properties), "guestinfo.deployment_type") ? "${data.vsphere_virtual_machine.template.vapp[0].properties["guestinfo.deployment_type"]}" : "mirrored"
+  # primary_segment_count = "${data.vsphere_virtual_machine.template.vapp[0].properties["guestinfo.primary_segment_count"]}"
+  # segment_count = local.deployment_type == "mirrored" ? local.primary_segment_count * 2: local.primary_segment_count
   memory = data.vsphere_virtual_machine.template.memory
   memory_reservation = data.vsphere_virtual_machine.template.memory / 2
   num_cpus = data.vsphere_virtual_machine.template.num_cpus
@@ -266,13 +267,13 @@ resource "vsphere_virtual_machine" "segment_hosts" {
       }
     }
   }
-  vapp {
-    properties = data.vsphere_virtual_machine.template.vapp[0].properties
-  }
+  #vapp {
+  #  properties = data.vsphere_virtual_machine.template.vapp[0].properties
+  #}
 }
 
 resource "vsphere_virtual_machine" "master_hosts" {
-  count = local.deployment_type == "mirrored" ? 2 : 1
+  count = 1 #local.deployment_type == "mirrored" ? 2 : 1
   name = count.index == 0 ? format("%s-mdw", var.prefix) : count.index == 1 ? format("%s-smdw", var.prefix) : format("%s-smdw-%d", var.prefix, count.index)
   resource_pool_id = vsphere_resource_pool.pool.id
   wait_for_guest_net_routable = false
@@ -352,13 +353,13 @@ resource "vsphere_virtual_machine" "master_hosts" {
     }
   }
 
-  vapp {
-    properties = data.vsphere_virtual_machine.template.vapp[0].properties
-  }
+  #vapp {
+  #  properties = data.vsphere_virtual_machine.template.vapp[0].properties
+  #}
 }
 
 resource "vsphere_compute_cluster_vm_anti_affinity_rule" "master_vm_anti_affinity_rule" {
-    count               = local.deployment_type == "mirrored" ? 1 : 0
+    count               = 0 #local.deployment_type == "mirrored" ? 1 : 0
     enabled             = true
     mandatory           = true
     compute_cluster_id  = data.vsphere_compute_cluster.compute_cluster.id
@@ -367,7 +368,7 @@ resource "vsphere_compute_cluster_vm_anti_affinity_rule" "master_vm_anti_affinit
 }
 
 resource "vsphere_compute_cluster_vm_anti_affinity_rule" "segment_vm_anti_affinity_rule" {
-    count               = local.deployment_type == "mirrored" ? var.segment_count / 2 : 0 #local.deployment_type == "mirrored" ? local.segment_count / 2 : 0
+    count               = 0 #local.deployment_type == "mirrored" ? var.segment_count / 2 : 0 #local.deployment_type == "mirrored" ? local.segment_count / 2 : 0
     enabled             = true
     mandatory           = true
     compute_cluster_id  = data.vsphere_compute_cluster.compute_cluster.id
@@ -377,3 +378,4 @@ resource "vsphere_compute_cluster_vm_anti_affinity_rule" "segment_vm_anti_affini
         element(vsphere_virtual_machine.segment_hosts.*.id, count.index*2+1),
     ]
 }
+
