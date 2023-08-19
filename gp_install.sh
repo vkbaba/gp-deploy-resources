@@ -6,7 +6,7 @@
 # NTP server address
 NTP_SERVER_ADDRESS="10.198.104.250"
 # VM memory size (GB)
-MEMORY_SIZE=8 
+MEMORY_SIZE=2
 # Number of segment VM
 SEGMENT_COUNT=2
 # Network interface name
@@ -232,15 +232,10 @@ chmod +x /etc/rc.d/rc.local
 
 #13.1 Execute the following steps in order to create the user gpadmin in the group gpadmin:
 if ! id -u gpadmin &>/dev/null; then
-    # グループ gpadmin が存在しない場合、グループを作成
     if ! getent group gpadmin &>/dev/null; then
         groupadd gpadmin
     fi
-
-    # ユーザー gpadmin をグループ gpadmin に所属させて作成
     useradd -g gpadmin -m gpadmin
-
-    # パスワードを設定
     echo "gpadmin:$GPADMIN_PASSWORD" | chpasswd
 else
     echo "User gpadmin already exists!"
@@ -354,7 +349,7 @@ mkdir -p /etc/gpv
 mkdir -p /var/log/gpv
 chmod a+rwx /var/log/gpv
 #3 Create a service file /etc/gpv/gpdb-service and paste in the following contents:
-cat << EOF > /etc/gpv/gpdb-service
+cat << 'EOF' > /etc/gpv/gpdb-service
 #!/bin/bash
 
 set -e
