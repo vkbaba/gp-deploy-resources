@@ -18,7 +18,8 @@ GPADMIN_PASSWORD="$YOUR_PASSWORD"
 SDW1_IP_ADDR="10.198.104.2"
 # IP address of segment 2 (sdw2)
 SDW2_IP_ADDR="10.198.104.3"
-# See https://tanzu.vmware.com/developer/guides/tanzu-network-gs/
+# UAA API Token
+# https://tanzu.vmware.com/developer/guides/tanzu-network-gs/
 TANZU_NW_UAA_API_TOKEN="YOUR_TANZU_NW_UAA_API_TOKEN"
 # greenplum-db-6.24.3-rhel7-x86_64.rpm
 DOWNLOAD_URL="https://network.tanzu.vmware.com/api/v2/products/vmware-greenplum/releases/1290496/product_files/1483329/download"
