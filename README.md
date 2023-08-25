@@ -19,7 +19,7 @@ VMware Greenplum をvSphere 上のCentOS7 にインストールする際に使�
 
 https://docs.vmware.com/en/VMware-Greenplum/6/greenplum-database/vsphere-deploying-byo-template-mirrorless.html
 
-変更する変数は下記の通りです。
+変更する変数は下記の通りです。それぞれの値を任意に変更します。
 
 - NTP サーバーのアドレス
     
@@ -31,7 +31,7 @@ https://docs.vmware.com/en/VMware-Greenplum/6/greenplum-database/vsphere-deployi
     
 - セグメントの数。変更する場合はセグメントのIP アドレスを追加したうえで#15.2 のhosts ファイル編集処理も変更してください。
     
-    SEGMENT_COUNT=2
+    SEGMENT_COUNT=3
     
 - ネットワークインターフェース名
     
@@ -48,7 +48,11 @@ https://docs.vmware.com/en/VMware-Greenplum/6/greenplum-database/vsphere-deployi
 - セグメント2のインターナルIPアドレス
     
     SDW2_IP_ADDR="10.198.104.3"
+  
+- セグメント3のインターナルIPアドレス
     
+    SDW3_IP_ADDR="10.198.104.4"
+  
 - Tanzu Network のUAA API Token で、取得方法は下記参照
 
     https://tanzu.vmware.com/developer/guides/tanzu-network-gs/
@@ -60,14 +64,11 @@ https://docs.vmware.com/en/VMware-Greenplum/6/greenplum-database/vsphere-deployi
     DOWNLOAD_URL="https://network.tanzu.vmware.com/api/v2/products/vmware-greenplum/
     releases/1290496/product_files/1483329/download"
 
-<!-- 画像 -->
-![image](images/gp_package.png)
-
 ```
 sudo bash gp_install.sh
 ```
 
-インストールスクリプト完了後、VM をシャットダウンし、Terraform スクリプトを実行します。Greenplum の作成が完了したら、マスターにgpadmin でログインして、下記コマンドを実行してサービスを立ち上げればGreenplum のインストールは完了です。 
+インストールスクリプト完了後、VM をシャットダウンし、Terraform スクリプトを実行します。マスターとセグメントのデプロイが完了したら、マスターにgpadmin でログインして、下記コマンドを実行してサービスを立ち上げればGreenplum のインストールは完了です。 
 
 ```
 gpinitsystem -a -I gpinitsystem_config -p gp_guc_config
@@ -1026,7 +1027,7 @@ variable "dns_servers" {
 - セグメントの数
 ```
 variable "segment_count" {
-  default = 2
+  default = 3
 }
 ```
 
@@ -1079,7 +1080,7 @@ variable "gp_sdw1_etl_ip" {
 }
 ```
 
-セグメント2のIP アドレス
+- セグメント2のIP アドレス
 ```
 variable "gp_sdw2_internal_ip" {
   type = string
@@ -1091,7 +1092,40 @@ variable "gp_sdw2_etl_ip" {
   default = "10.10.10.16"
 }
 ```
-ベースVM のhosts ファイルの設定と整合性をとる必要があるため、Terraform 側でセグメントのインターナルIP アドレス(gp_sdw1_internal_ip, gp_sdw2_internal_ip)を変更した場合は、gp_install.sh 側のIP アドレス(SDW1_IP_ADDR, SDW2_IP_ADDR)を変更して再インストールするか、ベースVM の設定を忘れずに変更すること。
+
+- セグメント3のIP アドレス
+```
+variable "gp_sdw3_internal_ip" {
+  type = string
+  default = "10.10.10.17"
+}
+
+variable "gp_sdw3_etl_ip" {
+  type = string
+  default = "10.10.10.18"
+}
+```
+
+セグメントの数を変更したら、Local Values のsdw_internal_ips とsdw_etl_ips も変更してください。例えばsdw4 を追加する場合は、sdw_internal_ips に"sdw4" = var.gp_sdw4_internal_ip を、sdw_etl_ips に"sdw4" = var.gp_sdw4_etl_ip をそれぞれ追加します。
+```
+locals {
+  ~~~
+  sdw_internal_ips = {
+    # Please add ore remove if you need 
+    "sdw1" = var.gp_sdw1_internal_ip
+    "sdw2" = var.gp_sdw2_internal_ip
+    "sdw3" = var.gp_sdw3_internal_ip
+  }
+  sdw_etl_ips = {
+    # Please add ore remove if you need 
+    "sdw1" = var.gp_sdw1_etl_ip
+    "sdw2" = var.gp_sdw2_etl_ip
+    "sdw3" = var.gp_sdw3_etl_ip
+  }
+}
+```
+
+ベースVM のhosts ファイルの設定と整合性をとる必要があるため、Terraform 側でセグメントのインターナルIP アドレス(gp_sdw1_internal_ip など)を変更した場合は、gp_install.sh 側のIP アドレス(SDW1_IP_ADDR など)を変更して再インストールするか、ベースVM の設定を忘れずに変更してください。
 
 ## demo-psql.md
 
