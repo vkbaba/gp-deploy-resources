@@ -8,16 +8,18 @@ NTP_SERVER_ADDRESS="10.198.104.250"
 # VM memory size (GB)
 MEMORY_SIZE=2
 # Number of segment VM
-SEGMENT_COUNT=2
+SEGMENT_COUNT=3
 # Network interface name
 NW_INTERFACE_NAME="ens192"
 # Password of gpadmin
 GPADMIN_PASSWORD="$YOUR_PASSWORD"  
-# Assume that the number of segment VM is 2, so please modify these values and #15.2 if you need.
+# Assume that the number of segment VM is 3, so please modify these values and #15.2 if you need.
 # IP address of segment 1 (sdw1)
 SDW1_IP_ADDR="10.198.104.2"
 # IP address of segment 2 (sdw2)
 SDW2_IP_ADDR="10.198.104.3"
+# IP address of segment 3 (sdw3)
+SDW3_IP_ADDR="10.198.104.4"
 # UAA API Token
 # https://tanzu.vmware.com/developer/guides/tanzu-network-gs/
 TANZU_NW_UAA_API_TOKEN="YOUR_TANZU_NW_UAA_API_TOKEN"
@@ -323,6 +325,9 @@ if ! entry_exists "/etc/hosts" "sdw2" && [ -n "${SDW2_IP_ADDR}" ]; then
     echo "${SDW2_IP_ADDR}   sdw2" >> /etc/hosts
 fi
 
+if ! entry_exists "/etc/hosts" "sdw3" && [ -n "${SDW3_IP_ADDR}" ]; then
+    echo "${SDW3_IP_ADDR}   sdw3" >> /etc/hosts
+fi
 
 #16 Create two files hosts-all and hosts-segments under /home/gpadmin. Replace 32 with your number of primary segment virtual machines as necessary.
 if ! entry_exists /home/gpadmin/hosts-all "mdw"; then
