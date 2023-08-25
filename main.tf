@@ -56,12 +56,12 @@ variable "dns_servers" {
   default = ["$DNS_ADDRESS"]
 }
 
-# The number of segment host (1 or 2)
+# The number of segment host. If you want to change please modify sdw_internal_ips and sdw_etl_ips
 variable "segment_count" {
-  default = 2
+  default = 3
 }
 
-# Netmask for mdw, sdw1, and sdw2
+# Netmask for mdw and sdw
 variable "gp_external_ipv4_netmask" {
   description = "Netmask bitcount, e.g. 24"
   default = 24
@@ -77,8 +77,8 @@ variable "gp_etl_ipv4_netmask" {
   default = 24
 }
 
-# Static ip addresses for mdw, sd21, and sdw2
-# If you change the ip adresses below, please change the hosts, and check the hosts-segments, and hosts-all files in the base vm 
+# Static ip addresses for mdw and sdw
+# If you change the IP addresses below after setting up the base VM, please also change the hosts file, and check the hosts-segments and hosts-all files in the base VM.  
 # mdw
 variable "gp_mdw_external_ip" {
   type = string
@@ -117,7 +117,16 @@ variable "gp_sdw2_etl_ip" {
   default = "10.10.10.16"
 }
 
+# sdw3
+variable "gp_sdw3_internal_ip" {
+  type = string
+  default = "10.10.10.17"
+}
 
+variable "gp_sdw3_etl_ip" {
+  type = string
+  default = "10.10.10.18"
+}
 
 ######################
 # terraform scripts
@@ -191,6 +200,18 @@ locals {
   # gp_virtual_etl_bar_ipv4_netmask = parseint(regex("/(\\d+)$", var.gp_virtual_etl_bar_ipv4_cidr)[0], 10)
   # master_etl_bar_ip = cidrhost(var.gp_virtual_etl_bar_ipv4_cidr, 12)#(pow(2,(32 - local.gp_virtual_etl_bar_ipv4_netmask))-1)-5)
   # standby_etl_bar_ip = cidrhost(var.gp_virtual_etl_bar_ipv4_cidr, 2)#(pow(2,(32 - local.gp_virtual_etl_bar_ipv4_netmask))-1)-4)
+  sdw_internal_ips = {
+    # Please add ore remove if you need 
+    "sdw1" = var.gp_sdw1_internal_ip
+    "sdw2" = var.gp_sdw2_internal_ip
+    "sdw3" = var.gp_sdw3_internal_ip
+  }
+  sdw_etl_ips = {
+    # Please add ore remove if you need 
+    "sdw1" = var.gp_sdw1_etl_ip
+    "sdw2" = var.gp_sdw2_etl_ip
+    "sdw3" = var.gp_sdw3_etl_ip
+  }
 }
 
 resource "vsphere_resource_pool" "pool" {
@@ -255,13 +276,13 @@ resource "vsphere_virtual_machine" "segment_hosts" {
       }
 
       network_interface {
-        ipv4_address = count.index==0 ? var.gp_sdw1_internal_ip : var.gp_sdw2_internal_ip
+        ipv4_address = lookup(local.sdw_internal_ips, "sdw${count.index + 1}", null)
         #ipv4_address = var.gp_sdw_internal_ip  #cidrhost(local.gp_virtual_internal_ip_cidr, count.index + 8)#local.segment_gp_virtual_internal_ipv4_offset)
         ipv4_netmask = var.gp_internal_ipv4_netmask
       }
 
       network_interface {
-        ipv4_address = count.index==0 ? var.gp_sdw1_etl_ip : var.gp_sdw2_etl_ip
+        ipv4_address = lookup(local.sdw_etl_ips, "sdw${count.index + 1}", null)
         #ipv4_address = var.gp_sdw_etl_ip # cidrhost(var.gp_virtual_etl_bar_ipv4_cidr, count.index + 6)#local.segment_gp_virtual_etl_bar_ipv4_offset)
         ipv4_netmask = var.gp_etl_ipv4_netmask
       }
